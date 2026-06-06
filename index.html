@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>DR.IT MUSTAFA SYSTEM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root { --bg: #f8f9fa; --card: #ffffff; }
+        body.dark { --bg: #121212; --card: #1e1e1e; background: var(--bg); color: #fff; }
+        .card { background: var(--card); border-radius: 15px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); padding: 20px; }
+        .nav-btn { width: 100%; margin-bottom: 10px; text-align: right; }
+    </style>
+</head>
+<body class="p-3">
+
+<!-- Login Page -->
+<div id="login-sec" class="container" style="max-width:400px;">
+    <div class="card text-center p-4">
+        <h3 class="text-primary">DR.IT MUSTAFA</h3>
+        <input type="text" id="user" class="form-control mb-2" placeholder="بەکارهێنەر">
+        <input type="password" id="pass" class="form-control mb-2" placeholder="پاسۆرد">
+        <button class="btn btn-primary w-100" onclick="login()">چوونەژوورەوە</button>
+    </div>
+</div>
+
+<!-- Main App -->
+<div id="main-app" class="d-none container-fluid">
+    <div class="row">
+        <div class="col-md-2">
+            <button class="btn btn-outline-primary nav-btn" onclick="show('dash')">داشبۆرد</button>
+            <button class="btn btn-outline-success nav-btn" onclick="show('sales')">فرۆشتن</button>
+            <button class="btn btn-outline-warning nav-btn" onclick="show('admin')">بەڕێوەبردن</button>
+            <button class="btn btn-outline-secondary nav-btn" onclick="show('settings')">سێتینگ</button>
+        </div>
+        <div class="col-md-10">
+            <!-- Dashboard -->
+            <div id="dash" class="card">
+                <h4>داشبۆردی سەرەکی</h4>
+                <div class="row mt-3">
+                    <div class="col-md-3"><div class="card bg-primary text-white">فرۆشتن: <span id="sCount">0</span></div></div>
+                    <div class="col-md-3"><div class="card bg-success text-white">قازانج: <span id="pCount">0</span>$</div></div>
+                </div>
+            </div>
+
+            <!-- Sales -->
+            <div id="sales" class="card d-none">
+                <h4>فرۆشتن و وەسڵ</h4>
+                <div id="receipt-content" class="p-3 border">
+                    <h5>DR.IT MUSTAFA</h5>
+                    <p>نرخی دۆلار: <span id="rateDisplay">1300</span></p>
+                    <input type="text" id="custName" class="form-control mb-2" placeholder="ناوی کڕیار">
+                    <button class="btn btn-success" onclick="generatePDF()">PDF و چاپکردن</button>
+                </div>
+            </div>
+
+            <!-- Admin -->
+            <div id="admin" class="card d-none">
+                <h4>بەڕێوەبردنی ئەکاونتەکان</h4>
+                <button class="btn btn-info" onclick="exportData()">Backup (JSON)</button>
+                <input type="file" id="importFile" class="d-none" onchange="importData(event)">
+                <button class="btn btn-warning" onclick="document.getElementById('importFile').click()">Restore (JSON)</button>
+            </div>
+
+            <!-- Settings -->
+            <div id="settings" class="card d-none">
+                <h4>سێتینگ</h4>
+                <button class="btn btn-dark" onclick="toggleDark()">Dark Mode (Auto Save)</button>
+                <input type="number" id="usdRate" class="form-control mt-2" placeholder="نرخی دۆلار">
+                <button class="btn btn-primary mt-2" onclick="saveRate()">گۆڕینی نرخ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let state = { usd: 1300, dark: false };
+
+    function login() {
+        if(document.getElementById('user').value === "admin" && document.getElementById('pass').value === "admin123") {
+            document.getElementById('login-sec').classList.add('d-none');
+            document.getElementById('main-app').classList.remove('d-none');
+        } else alert("هەڵەیە!");
+    }
+
+    function show(id) {
+        ['dash','sales','admin','settings'].forEach(s => document.getElementById(s).classList.add('d-none'));
+        document.getElementById(id).classList.remove('d-none');
+    }
+
+    function toggleDark() {
+        state.dark = !state.dark;
+        document.body.classList.toggle('dark');
+        localStorage.setItem('dark', state.dark);
+    }
+
+    function saveRate() {
+        state.usd = document.getElementById('usdRate').value;
+        document.getElementById('rateDisplay').innerText = state.usd;
+        localStorage.setItem('usd', state.usd);
+    }
+
+    function generatePDF() {
+        html2pdf().from(document.getElementById('receipt-content')).save('Receipt.pdf');
+    }
+
+    function exportData() {
+        const data = JSON.stringify(state);
+        const blob = new Blob([data], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'backup.json';
+        a.click();
+    }
+
+    // Load settings
+    if(localStorage.getItem('dark') === 'true') toggleDark();
+</script>
+</body>
+</html>
